@@ -30,13 +30,13 @@ from rowboat.models.message import Command
 from rowboat.models.notification import Notification
 from rowboat.plugins.modlog import Actions
 from rowboat.constants import (
-    GREEN_TICK_EMOJI, RED_TICK_EMOJI, ROWBOAT_GUILD_ID, ROWBOAT_USER_ROLE_ID
+    GREEN_TICK_EMOJI, RED_TICK_EMOJI, ROWBOAT_GUILD_ID, ROWBOAT_USER_ROLE_ID, ROWBOAT_CONTROL_CHANNEL
 )
 
 PY_CODE_BLOCK = u'```py\n{}\n```'
 
 BOT_INFO = '''
-Rowboat is a moderation and utilitarian bot built for large Discord servers.
+dotBoat is a separate instance of Rowboat, a moderation and utilitarian bot built for large Discord servers. dotBoat is private and only added to some servers. Please go to the official Rowboat server to get it, get support for it, and more.
 '''
 
 GUILDS_WAITING_SETUP_KEY = 'gws'
@@ -288,8 +288,7 @@ class CorePlugin(Plugin):
         try:
             yield embed
             self.bot.client.api.channels_messages_create(
-                290924692057882635 if ENV == 'prod' else 301869081714491393,
-                '',
+                ROWBOAT_CONTROL_CHANNEL,
                 embed=embed
             )
         except:
