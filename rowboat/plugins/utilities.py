@@ -113,6 +113,26 @@ class UtilitiesPlugin(Plugin):
         r = requests.get(url)
         r.raise_for_status()
         event.msg.reply('', attachments=[('cat.jpg', r.content)])
+        
+    @Plugin.command('dog', global_=True)
+    def dog(self, event):
+        # Sometimes random.cat gives us gifs (smh)
+        for _ in range(3):
+            try:
+                r = requests.get('http://random.dog/woof')
+                r.raise_for_status()
+            except:
+                continue
+
+            url = 'http://random.dog' + r
+            if not url.endswith('.gif'):
+                break
+        else:
+            return event.msg.reply('404 dog not found :(')
+
+        r = requests.get(url)
+        r.raise_for_status()
+        event.msg.reply('', attachments=[('dog.jpg', r.content)])
 
     @Plugin.command('emoji', '<emoji:str>', global_=True)
     def emoji(self, event, emoji):
