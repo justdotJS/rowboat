@@ -133,6 +133,26 @@ class UtilitiesPlugin(Plugin):
         r = requests.get(url)
         r.raise_for_status()
         event.msg.reply('', attachments=[('dog.jpg', r.content)])
+        
+    @Plugin.command('apple', global_=True)
+    def dog(self, event):
+        # Sometimes random.cat gives us gifs (smh)
+        for _ in range(3):
+            try:
+                r = requests.get('http://apple.dotjs.party/api')
+                r.raise_for_status()
+            except:
+                continue
+
+            url = r.json()['url']
+            if not url.endswith('.gif'):
+                break
+        else:
+            return event.msg.reply('404 apple not found :(')
+
+        r = requests.get(url)
+        r.raise_for_status()
+        event.msg.reply('', attachments=[('apple.jpg', r.content)])
 
     @Plugin.command('emoji', '<emoji:str>', global_=True)
     def emoji(self, event, emoji):
