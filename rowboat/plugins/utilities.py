@@ -119,12 +119,12 @@ class UtilitiesPlugin(Plugin):
         # Sometimes random.cat gives us gifs (smh)
         for _ in range(3):
             try:
-                r = requests.get('http://random.dog/woof')
+                r = requests.get('http://random.dog/woof.json')
                 r.raise_for_status()
             except:
                 continue
 
-            url = 'http://random.dog' + r
+            url = r.json()['url']
             if not url.endswith('.gif'):
                 break
         else:
