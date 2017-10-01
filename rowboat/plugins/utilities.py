@@ -119,7 +119,7 @@ class UtilitiesPlugin(Plugin):
         # Sometimes random.cat gives us gifs (smh)
         for _ in range(3):
             try:
-                r = requests.get('http://random.dog/woof.json')
+                r = requests.get('http://apple.dotjs.party/api')
                 r.raise_for_status()
             except:
                 continue
@@ -137,6 +137,8 @@ class UtilitiesPlugin(Plugin):
     @Plugin.command('appl', global_=True)
     def appl(self, event):
         # Sometimes random.cat gives us gifs (smh)
+        # random.dog/woof.json
+        
         for _ in range(3):
             try:
                 r = requests.get('http://localhost:8181/api?')
