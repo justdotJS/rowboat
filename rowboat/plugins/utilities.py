@@ -135,7 +135,7 @@ class UtilitiesPlugin(Plugin):
         event.msg.reply('', attachments=[('dog.jpg', r.content)])
         
     @Plugin.command('apple', global_=True)
-    def apple(self, event):
+    def appl(self, event):
         # Sometimes random.cat gives us gifs (smh)
         for _ in range(3):
             try:
