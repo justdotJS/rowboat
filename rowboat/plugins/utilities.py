@@ -116,10 +116,10 @@ class UtilitiesPlugin(Plugin):
         
     @Plugin.command('dog', global_=True)
     def dog(self, event):
-        # Sometimes random.cat gives us gifs (smh)
+        # Sometimes random.dog gives us gifs (smh)
         for _ in range(3):
             try:
-                r = requests.get('http://apple.dotjs.party/api')
+                r = requests.get('http://random.dog/woof.json')
                 r.raise_for_status()
             except:
                 continue
@@ -141,18 +141,18 @@ class UtilitiesPlugin(Plugin):
         
         for _ in range(3):
             try:
-                r = requests.get('http://localhost:8181/api?')
+                r = requests.get('http://127.0.0.1:8181/api?')
                 r.raise_for_status()
             except:
                 continue
 
-            url = r.json()['url']
-            if not url.endswith('.gif'):
+            file = r.json()['file']
+            if not file.endswith('.gif'):
                 break
         else:
             return event.msg.reply('404 appl not found :(')
 
-        r = requests.get(url)
+        r = requests.get(file)
         r.raise_for_status()
         event.msg.reply('', attachments=[('appl.jpg', r.content)])
 
