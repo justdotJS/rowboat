@@ -139,7 +139,7 @@ class UtilitiesPlugin(Plugin):
         # Sometimes random.cat gives us gifs (smh)
         for _ in range(3):
             try:
-                r = requests.get('http://apple.dotjs.party/api?')
+                r = requests.get('http://localhost:8181/api?')
                 r.raise_for_status()
             except:
                 continue
