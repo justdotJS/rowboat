@@ -141,7 +141,7 @@ class UtilitiesPlugin(Plugin):
         
         for _ in range(3):
             try:
-                r = requests.get('http://127.0.0.1:8181/api?')
+                r = requests.get('http://random.dog/woof.json')
                 r.raise_for_status()
             except:
                 continue
