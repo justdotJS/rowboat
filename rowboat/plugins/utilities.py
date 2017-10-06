@@ -30,7 +30,10 @@ from rowboat.constants import (
     STATUS_EMOJI, SNOOZE_EMOJI, GREEN_TICK_EMOJI, GREEN_TICK_EMOJI_ID,
     EMOJI_RE, USER_MENTION_RE, YEAR_IN_SEC, CDN_URL
 )
+from google import google
 
+def search_google_images(query):
+    return google.search_images(query)
 
 def get_status_emoji(presence):
     if presence.game and presence.game.type == GameType.STREAMING:
@@ -93,27 +96,27 @@ class UtilitiesPlugin(Plugin):
             return event.msg.reply(':warning: ending number must be larger than starting number!')
 
         event.msg.reply(str(random.randint(start, end)))
-
-    @Plugin.command('cat', global_=True)
-    def cat(self, event):
-        # Sometimes random.cat gives us gifs (smh)
-        for _ in range(3):
-            try:
-                r = requests.get('http://random.cat/meow')
-                r.raise_for_status()
-            except:
-                continue
-
-            url = r.json()['file']
-            if not url.endswith('.gif'):
-                break
-        else:
-            return event.msg.reply('404 cat not found :(')
-
-        r = requests.get(url)
-        r.raise_for_status()
-        event.msg.reply('', attachments=[('cat.jpg', r.content)])
         
+-    @Plugin.command('cat', global_=True)		
+ -    def cat(self, event):		
+ -        # Sometimes random.cat gives us gifs (smh)		
+ -        for _ in range(3):		
+ -            try:		
+ -                r = requests.get('http://random.cat/meow')		
+ -                r.raise_for_status()		
+ -            except:		
+ -                continue		
+ -		
+ -            url = r.json()['file']		
+ -            if not url.endswith('.gif'):		
+ -                break		
+ -        else:		
+ -            return event.msg.reply('404 cat not found :(')		
+ -		
+ -        r = requests.get(url)		
+ -        r.raise_for_status()		
+ -        event.msg.reply('', attachments=[('cat.jpg', r.content)])		
+ -        
     @Plugin.command('dog', global_=True)
     def dog(self, event):
         # Sometimes random.dog gives us gifs (smh)
@@ -133,7 +136,17 @@ class UtilitiesPlugin(Plugin):
         r = requests.get(url)
         r.raise_for_status()
         event.msg.reply('', attachments=[('dog.jpg', r.content)])
-        
+
+    @Plugin.command('car', global_=True)
+    def car(self, event):
+        query = "cars"
+        result = search_google_images(query)
+        if len(result < 1):
+            return event.msg.reply("An unknown error occurred")
+        r = requests.get(result.link)
+        r.raise_for_status()
+        event.msg.reply('', attachments=[('car.jpg', r.content)])
+                
     @Plugin.command('appl', global_=True)
     def appl(self, event):
         # Sometimes random.cat gives us gifs (smh)
