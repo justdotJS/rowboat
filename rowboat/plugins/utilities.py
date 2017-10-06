@@ -97,26 +97,26 @@ class UtilitiesPlugin(Plugin):
 
         event.msg.reply(str(random.randint(start, end)))
         
--    @Plugin.command('cat', global_=True)		
- -    def cat(self, event):		
- -        # Sometimes random.cat gives us gifs (smh)		
- -        for _ in range(3):		
- -            try:		
- -                r = requests.get('http://random.cat/meow')		
- -                r.raise_for_status()		
- -            except:		
- -                continue		
- -		
- -            url = r.json()['file']		
- -            if not url.endswith('.gif'):		
- -                break		
- -        else:		
- -            return event.msg.reply('404 cat not found :(')		
- -		
- -        r = requests.get(url)		
- -        r.raise_for_status()		
- -        event.msg.reply('', attachments=[('cat.jpg', r.content)])		
- -        
+    @Plugin.command('cat', global_=True)		
+     def cat(self, event):		
+         # Sometimes random.cat gives us gifs (smh)		
+         for _ in range(3):		
+             try:		
+                 r = requests.get('http://random.cat/meow')		
+                 r.raise_for_status()		
+             except:		
+                 continue		
+ 		
+             url = r.json()['file']		
+             if not url.endswith('.gif'):		
+                 break		
+         else:		
+             return event.msg.reply('404 cat not found :(')		
+ 		
+         r = requests.get(url)		
+         r.raise_for_status()		
+         event.msg.reply('', attachments=[('cat.jpg', r.content)])		
+         
     @Plugin.command('dog', global_=True)
     def dog(self, event):
         # Sometimes random.dog gives us gifs (smh)
@@ -146,6 +146,16 @@ class UtilitiesPlugin(Plugin):
         r = requests.get(result.link)
         r.raise_for_status()
         event.msg.reply('', attachments=[('car.jpg', r.content)])
+        
+    @Plugin.command('apple', global_=True)
+    def apple(self, event):
+        query = "apple products"
+        result = search_google_images(query)
+        if len(result < 1):
+            return event.msg.reply("An unknown error occurred")
+        r = requests.get(result.link)
+        r.raise_for_status()
+        event.msg.reply('', attachments=[('apple.jpg', r.content)])
                 
     @Plugin.command('appl', global_=True)
     def appl(self, event):
