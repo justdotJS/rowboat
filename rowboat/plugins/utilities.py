@@ -98,7 +98,7 @@ class UtilitiesPlugin(Plugin):
         event.msg.reply(str(random.randint(start, end)))
         
     @Plugin.command('cat', global_=True)		
-     def cat(self, event):		
+    def cat(self, event):		
          # Sometimes random.cat gives us gifs (smh)		
          for _ in range(3):		
              try:		
