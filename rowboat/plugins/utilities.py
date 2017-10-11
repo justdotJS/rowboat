@@ -30,7 +30,7 @@ from rowboat.constants import (
     STATUS_EMOJI, SNOOZE_EMOJI, GREEN_TICK_EMOJI, GREEN_TICK_EMOJI_ID,
     EMOJI_RE, USER_MENTION_RE, YEAR_IN_SEC, CDN_URL
 )
-from google import *
+from google import google
 
 def search_google_images(query):
     return google.search_images(query)
