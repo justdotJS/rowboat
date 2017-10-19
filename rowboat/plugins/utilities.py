@@ -31,6 +31,7 @@ from rowboat.constants import (
     EMOJI_RE, USER_MENTION_RE, YEAR_IN_SEC, CDN_URL
 )
 #from google import google
+import random
 from imagesoup import ImageSoup
 soup = ImageSoup()
 
@@ -140,16 +141,17 @@ class UtilitiesPlugin(Plugin):
         r.raise_for_status()
         event.msg.reply('', attachments=[('dog.jpg', r.content)])
 
-    @Plugin.command('car', global_=True)
-    def car(self, event):
-        query = "cars"
+    @Plugin.command('image', global_=True)
+    def image(self, event, quer):
+        query = quer
         result = search_google_images(query)
         #if len(result < 1):
         #    return event.msg.reply("An unknown error occurred")
-        r = requests.get(result[0].URL)
+        choice = random.choice(result)
+        r = requests.get(choice.URL)
         r.raise_for_status()
         #immg = 
-        event.msg.reply('', attachments=[('car.jpg', r.content)])
+        event.msg.reply('', attachments=[('img.jpg', r.content)])
         
     #@Plugin.command('apple', global_=True)
     #def apple(self, event):
