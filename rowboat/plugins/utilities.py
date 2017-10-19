@@ -37,7 +37,7 @@ soup = ImageSoup()
 
 
 def search_google_images(query):
-    return soup.search('"' + query + '"', n_images=100)
+    return soup.search('"' + query + '"', n_images=500)
 
 def get_status_emoji(presence):
     if presence.game and presence.game.type == GameType.STREAMING:
