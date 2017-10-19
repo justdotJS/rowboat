@@ -37,10 +37,7 @@ soup = ImageSoup()
 
 
 def search_google_images(query):
-    return soup.search('"' + query + '"', n_images=300)
-
-def small_search_google_images(query):
-    return soup.search('"' + query + '"', n_images=10)
+    return soup.search('"' + query + '"', n_images=500)
 
 def get_status_emoji(presence):
     if presence.game and presence.game.type == GameType.STREAMING:
@@ -156,18 +153,6 @@ class UtilitiesPlugin(Plugin):
         #immg = 
         event.msg.reply('', attachments=[('img.jpg', r.content)])
         
-    @Plugin.command('simage', '<quer:str>', global_=True)
-    def simage(self, event, quer):
-        query = quer
-        result = small_search_google_images(query)
-        #if len(result < 1):
-        #    return event.msg.reply("An unknown error occurred")
-        choice = random.choice(result)
-        r = requests.get(choice.URL)
-        r.raise_for_status()
-        #immg = 
-        event.msg.reply('', attachments=[('simg.jpg', r.content)])
-        
     #@Plugin.command('apple', global_=True)
     #def apple(self, event):
        # query = "apple products"
@@ -264,4 +249,288 @@ class UtilitiesPlugin(Plugin):
         except Message.DoesNotExist:
             return event.msg.reply(u"I've never seen {}".format(user))
 
-        event.msg.reply(u'I last saw {} {} ago (at 1
+        event.msg.reply(u'I last saw {} {} ago (at {})'.format(
+            user,
+            humanize.naturaldelta(datetime.utcnow() - msg.timestamp),
+            msg.timestamp
+        ))
+
+    @Plugin.command('search', '<query:str...>', global_=True)
+    def search(self, event, query):
+        queries = []
+
+        if query.isdigit():
+            queries.append((User.user_id == query))
+
+        q = USER_MENTION_RE.findall(query)
+        if len(q) and q[0].isdigit():
+            queries.append((User.user_id == q[0]))
+        else:
+            queries.append((User.username ** u'%{}%'.format(query.replace('%', ''))))
+
+        if '#' in query:
+            username, discrim = query.rsplit('#', 1)
+            if discrim.isdigit():
+                queries.append((
+                    (User.username == username) &
+                    (User.discriminator == int(discrim))))
+
+        users = User.select().where(reduce(operator.or_, queries))
+        if len(users) == 0:
+            return event.msg.reply(u'No users found for query `{}`'.format(S(query, escape_codeblocks=True)))
+
+        if len(users) == 1:
+            if users[0].user_id in self.state.users:
+                return self.info(event, self.state.users.get(users[0].user_id))
+
+        return event.msg.reply(u'Found the following users for your query: ```{}```'.format(
+            u'\n'.join(map(lambda i: u'{} ({})'.format(unicode(i), i.user_id), users[:25]))
+        ))
+
+    @Plugin.command('server', '[guild_id:snowflake]', global_=True)
+    def server(self, event, guild_id=None):
+        guild = self.state.guilds.get(guild_id) if guild_id else event.guild
+        if not guild:
+            raise CommandFail('invalid server')
+
+        content = []
+        content.append(u'**\u276F Server Information**')
+
+        created_at = to_datetime(guild.id)
+        content.append(u'Created: {} ago ({})'.format(
+            humanize.naturaldelta(datetime.utcnow() - created_at),
+            created_at.isoformat(),
+        ))
+        content.append(u'Members: {}'.format(len(guild.members)))
+        content.append(u'Features: {}'.format(', '.join(guild.features) or 'none'))
+
+        content.append(u'\n**\u276F Counts**')
+        text_count = sum(1 for c in guild.channels.values() if not c.is_voice)
+        voice_count = len(guild.channels) - text_count
+        content.append(u'Roles: {}'.format(len(guild.roles)))
+        content.append(u'Text: {}'.format(text_count))
+        content.append(u'Voice: {}'.format(voice_count))
+
+        content.append(u'\n**\u276F Members**')
+        status_counts = defaultdict(int)
+        for member in guild.members.values():
+            if not member.user.presence:
+                status = Status.OFFLINE
+            else:
+                status = member.user.presence.status
+            status_counts[status] += 1
+
+        for status, count in sorted(status_counts.items(), key=lambda i: str(i[0]), reverse=True):
+            content.append(u'<{}> - {}'.format(
+                STATUS_EMOJI[status], count
+            ))
+
+        embed = MessageEmbed()
+        if guild.icon:
+            embed.set_thumbnail(url=guild.icon_url)
+            embed.color = get_dominant_colors_guild(guild)
+        embed.description = '\n'.join(content)
+        event.msg.reply('', embed=embed)
+
+    @Plugin.command('info', '<user:user>')
+    def info(self, event, user):
+        content = []
+        content.append(u'**\u276F User Information**')
+        content.append(u'ID: {}'.format(user.id))
+        content.append(u'Profile: <@{}>'.format(user.id))
+
+        if user.presence:
+            emoji, status = get_status_emoji(user.presence)
+            content.append('Status: {} <{}>'.format(status, emoji))
+            if user.presence.game and user.presence.game.name:
+                if user.presence.game.type == GameType.DEFAULT:
+                    content.append(u'Game: {}'.format(user.presence.game.name))
+                else:
+                    content.append(u'Stream: [{}]({})'.format(user.presence.game.name, user.presence.game.url))
+
+        created_dt = to_datetime(user.id)
+        content.append('Created: {} ago ({})'.format(
+            humanize.naturaldelta(datetime.utcnow() - created_dt),
+            created_dt.isoformat()
+        ))
+
+        member = event.guild.get_member(user.id) if event.guild else None
+        if member:
+            content.append(u'\n**\u276F Member Information**')
+
+            if member.nick:
+                content.append(u'Nickname: {}'.format(member.nick))
+
+            content.append('Joined: {} ago ({})'.format(
+                humanize.naturaldelta(datetime.utcnow() - member.joined_at),
+                member.joined_at.isoformat(),
+            ))
+
+            if member.roles:
+                content.append(u'Roles: {}'.format(
+                    ', '.join((member.guild.roles.get(r).name for r in member.roles))
+                ))
+
+        # Execute a bunch of queries async
+        newest_msg = Message.select(Message.timestamp).where(
+            (Message.author_id == user.id) &
+            (Message.guild_id == event.guild.id)
+        ).limit(1).order_by(Message.timestamp.desc()).async()
+
+        oldest_msg = Message.select(Message.timestamp).where(
+            (Message.author_id == user.id) &
+            (Message.guild_id == event.guild.id)
+        ).limit(1).order_by(Message.timestamp.asc()).async()
+
+        infractions = Infraction.select(
+            Infraction.guild_id,
+            fn.COUNT('*')
+        ).where(
+            (Infraction.user_id == user.id)
+        ).group_by(Infraction.guild_id).tuples().async()
+
+        voice = GuildVoiceSession.select(
+            GuildVoiceSession.user_id,
+            fn.COUNT('*'),
+            fn.SUM(GuildVoiceSession.ended_at - GuildVoiceSession.started_at)
+        ).where(
+            (GuildVoiceSession.user_id == user.id) &
+            (~(GuildVoiceSession.ended_at >> None))
+        ).group_by(GuildVoiceSession.user_id).tuples().async()
+
+        # Wait for them all to complete (we're still going to be as slow as the
+        #  slowest query, so no need to be smart about this.)
+        wait_many(newest_msg, oldest_msg, infractions, voice, timeout=10)
+        tags = to_tags(guild_id=event.msg.guild.id)
+
+        if newest_msg.value and oldest_msg.value:
+            statsd.timing('sql.duration.newest_msg', newest_msg.value._query_time, tags=tags)
+            statsd.timing('sql.duration.oldest_msg', oldest_msg.value._query_time, tags=tags)
+            newest_msg = newest_msg.value.get()
+            oldest_msg = oldest_msg.value.get()
+
+            content.append(u'\n **\u276F Activity**')
+            content.append('Last Message: {} ago ({})'.format(
+                humanize.naturaldelta(datetime.utcnow() - newest_msg.timestamp),
+                newest_msg.timestamp.isoformat(),
+            ))
+            content.append('First Message: {} ago ({})'.format(
+                humanize.naturaldelta(datetime.utcnow() - oldest_msg.timestamp),
+                oldest_msg.timestamp.isoformat(),
+            ))
+
+        if infractions.value:
+            statsd.timing('sql.duration.infractions', infractions.value._query_time, tags=tags)
+            infractions = list(infractions.value)
+            total = sum(i[1] for i in infractions)
+            content.append(u'\n**\u276F Infractions**')
+            content.append('Total Infractions: {}'.format(total))
+            content.append('Unique Servers: {}'.format(len(infractions)))
+
+        if voice.value:
+            statsd.timing('plugin.utilities.info.sql.voice', voice.value._query_time, tags=tags)
+            voice = list(voice.value)
+            content.append(u'\n**\u276F Voice**')
+            content.append(u'Sessions: {}'.format(voice[0][1]))
+            content.append(u'Time: {}'.format(humanize.naturaldelta(
+                voice[0][2]
+            )))
+
+        embed = MessageEmbed()
+
+        avatar = u'https://cdn.discordapp.com/avatars/{}/{}.png'.format(
+            user.id,
+            user.avatar,
+        )
+
+        embed.set_author(name=u'{}#{}'.format(
+            user.username,
+            user.discriminator,
+        ), icon_url=avatar)
+
+        embed.set_thumbnail(url=avatar)
+
+        embed.description = '\n'.join(content)
+        embed.color = get_dominant_colors_user(user, avatar)
+        event.msg.reply('', embed=embed)
+
+    def trigger_reminders(self):
+        reminders = Reminder.with_message_join().where(
+            (Reminder.remind_at < (datetime.utcnow() + timedelta(seconds=1)))
+        )
+
+        for reminder in reminders:
+            self.spawn(self.trigger_reminder, reminder)
+
+        self.queue_reminders()
+
+    def trigger_reminder(self, reminder):
+        message = reminder.message_id
+        channel = self.state.channels.get(message.channel_id)
+        if not channel:
+            self.log.warning('Not triggering reminder, channel %s was not found!',
+                message.channel_id)
+            reminder.delete_instance()
+            return
+
+        msg = channel.send_message(u'<@{}> you asked me at {} ({} ago) to remind you about: {}'.format(
+            message.author_id,
+            reminder.created_at,
+            humanize.naturaldelta(reminder.created_at - datetime.utcnow()),
+            S(reminder.content)
+        ))
+
+        # Add the emoji options
+        msg.add_reaction(SNOOZE_EMOJI)
+        msg.add_reaction(GREEN_TICK_EMOJI)
+
+        try:
+            mra_event = self.wait_for_event(
+                'MessageReactionAdd',
+                message_id=msg.id,
+                conditional=lambda e: (
+                    (e.emoji.name == SNOOZE_EMOJI or e.emoji.id == GREEN_TICK_EMOJI_ID) and
+                    e.user_id == message.author_id
+                )
+            ).get(timeout=30)
+        except gevent.Timeout:
+            reminder.delete_instance()
+            return
+        finally:
+            # Cleanup
+            msg.delete_reaction(SNOOZE_EMOJI)
+            msg.delete_reaction(GREEN_TICK_EMOJI)
+
+        if mra_event.emoji.name == SNOOZE_EMOJI:
+            reminder.remind_at = datetime.utcnow() + timedelta(minutes=20)
+            reminder.save()
+            msg.edit(u'Ok, I\'ve snoozed that reminder for 20 minutes.')
+            return
+
+        reminder.delete_instance()
+
+    @Plugin.command('clear', group='r', global_=True)
+    def cmd_remind_clear(self, event):
+        count = Reminder.delete_for_user(event.author.id)
+        return event.msg.reply(':ok_hand: I cleared {} reminders for you'.format(count))
+
+    @Plugin.command('add', '<duration:str> <content:str...>', group='r', global_=True)
+    @Plugin.command('remind', '<duration:str> <content:str...>', global_=True)
+    def cmd_remind(self, event, duration, content):
+        if Reminder.count_for_user(event.author.id) > 30:
+            return event.msg.reply(':warning: you an only have 15 reminders going at once!')
+
+        remind_at = parse_duration(duration)
+        if remind_at > (datetime.utcnow() + timedelta(seconds=5 * YEAR_IN_SEC)):
+            return event.msg.reply(':warning: thats too far in the future, I\'ll forget!')
+
+        r = Reminder.create(
+            message_id=event.msg.id,
+            remind_at=remind_at,
+            content=content
+        )
+        self.reminder_task.set_next_schedule(r.remind_at)
+        event.msg.reply(':ok_hand: I\'ll remind you at {} ({})'.format(
+            r.remind_at.isoformat(),
+            humanize.naturaldelta(r.remind_at - datetime.utcnow()),
+        ))
