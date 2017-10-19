@@ -30,7 +30,7 @@ from rowboat.constants import (
     STATUS_EMOJI, SNOOZE_EMOJI, GREEN_TICK_EMOJI, GREEN_TICK_EMOJI_ID,
     EMOJI_RE, USER_MENTION_RE, YEAR_IN_SEC, CDN_URL
 )
-from google import google
+#from google import google
 
 def search_google_images(query):
     return google.search_images(query)
@@ -137,25 +137,25 @@ class UtilitiesPlugin(Plugin):
         r.raise_for_status()
         event.msg.reply('', attachments=[('dog.jpg', r.content)])
 
-    @Plugin.command('car', global_=True)
-    def car(self, event):
-        query = "cars"
-        result = search_google_images(query)
-        if len(result < 1):
-            return event.msg.reply("An unknown error occurred")
-        r = requests.get(result.link)
-        r.raise_for_status()
-        event.msg.reply('', attachments=[('car.jpg', r.content)])
+    #@Plugin.command('car', global_=True)
+    #def car(self, event):
+        #query = "cars"
+        #result = search_google_images(query)
+        #if len(result < 1):
+        #    return event.msg.reply("An unknown error occurred")
+        #r = requests.get(result.link)
+        #r.raise_for_status()
+        #event.msg.reply('', attachments=[('car.jpg', r.co
         
-    @Plugin.command('apple', global_=True)
-    def apple(self, event):
-        query = "apple products"
-        result = search_google_images(query)
-        if len(result < 1):
-            return event.msg.reply("An unknown error occurred")
-        r = requests.get(result.link)
-        r.raise_for_status()
-        event.msg.reply('', attachments=[('apple.jpg', r.content)])
+    #@Plugin.command('apple', global_=True)
+    #def apple(self, event):
+       # query = "apple products"
+      #  result = search_google_images(query)
+      # if len(result < 1):
+      #      return event.msg.reply("An unknown error occurred")
+       # r = requests.get(result.link)
+      ##  r.raise_for_status()
+      #  event.msg.reply('', attachments=[('apple.jpg', r.content)])
                 
     @Plugin.command('appl', global_=True)
     def appl(self, event):
