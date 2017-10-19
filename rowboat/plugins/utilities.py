@@ -146,7 +146,7 @@ class UtilitiesPlugin(Plugin):
         result = search_google_images(query)
         #if len(result < 1):
         #    return event.msg.reply("An unknown error occurred")
-        r = requests.get(images[0].URL)
+        r = requests.get(result[0].URL)
         r.raise_for_status()
         #immg = 
         event.msg.reply('', attachments=[('car.jpg', r.content)])
