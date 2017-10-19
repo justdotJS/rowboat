@@ -141,7 +141,7 @@ class UtilitiesPlugin(Plugin):
         r.raise_for_status()
         event.msg.reply('', attachments=[('dog.jpg', r.content)])
 
-    @Plugin.command('image', 'str', global_=True)
+    @Plugin.command('image', '<quer:str>', global_=True)
     def image(self, event, quer):
         query = quer
         result = search_google_images(query)
