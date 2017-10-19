@@ -37,7 +37,10 @@ soup = ImageSoup()
 
 
 def search_google_images(query):
-    return soup.search('"' + query + '"', n_images=500)
+    return soup.search('"' + query + '"', n_images=300)
+
+def small_search_google_images(query):		
+    return soup.search('"' + query + '"', n_images=10)
 
 def get_status_emoji(presence):
     if presence.game and presence.game.type == GameType.STREAMING:
@@ -152,6 +155,18 @@ class UtilitiesPlugin(Plugin):
         r.raise_for_status()
         #immg = 
         event.msg.reply('', attachments=[('img.jpg', r.content)])
+        
+    @Plugin.command('simage', '<quer:str>', global_=True)
+    def simage(self, event, quer):
+        query = quer
+        result = small_search_google_images(query)
+        #if len(result < 1):
+        #    return event.msg.reply("An unknown error occurred")
+        choice = random.choice(result)
+        r = requests.get(choice.URL)
+        r.raise_for_status()
+        #immg = 
+        event.msg.reply('', attachments=[('simg.jpg', r.content)])
         
     #@Plugin.command('apple', global_=True)
     #def apple(self, event):
