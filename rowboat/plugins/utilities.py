@@ -31,9 +31,12 @@ from rowboat.constants import (
     EMOJI_RE, USER_MENTION_RE, YEAR_IN_SEC, CDN_URL
 )
 #from google import google
+from imagesoup import ImageSoup
+soup = ImageSoup()
+
 
 def search_google_images(query):
-    return google.search_images(query)
+    return soup.search('"' + query + '"', n_images=100)
 
 def get_status_emoji(presence):
     if presence.game and presence.game.type == GameType.STREAMING:
@@ -137,15 +140,16 @@ class UtilitiesPlugin(Plugin):
         r.raise_for_status()
         event.msg.reply('', attachments=[('dog.jpg', r.content)])
 
-    #@Plugin.command('car', global_=True)
-    #def car(self, event):
-        #query = "cars"
-        #result = search_google_images(query)
+    @Plugin.command('car', global_=True)
+    def car(self, event):
+        query = "cars"
+        result = search_google_images(query)
         #if len(result < 1):
         #    return event.msg.reply("An unknown error occurred")
-        #r = requests.get(result.link)
-        #r.raise_for_status()
-        #event.msg.reply('', attachments=[('car.jpg', r.co
+        r = requests.get(images[0].URL)
+        r.raise_for_status()
+        #immg = 
+        event.msg.reply('', attachments=[('car.jpg', r.content)])
         
     #@Plugin.command('apple', global_=True)
     #def apple(self, event):
